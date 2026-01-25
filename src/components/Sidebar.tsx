@@ -1,4 +1,4 @@
-import { Home, TrendingUp, Menu } from 'lucide-react';
+import { Home, TrendingUp, TrendingDown, Menu, BarChart3, CreditCard, Package, Users, AlertTriangle, FileText } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 
@@ -8,7 +8,14 @@ export default function Sidebar() {
 
     const navItems = [
         { path: '/', label: 'Dashboard', icon: Home },
-        { path: '/item-profit', label: 'Item Profit', icon: TrendingUp },
+        { path: '/daily-sales', label: 'Daily Sales', icon: TrendingDown },
+        { path: '/payments', label: 'Payment Analysis', icon: CreditCard },
+        { path: '/stock', label: 'Stock Summary', icon: Package },
+        { path: '/item-profit', label: 'Item Wise Profit', icon: TrendingUp },
+        { path: '/category-profit', label: 'Category Profit', icon: BarChart3 },
+        { path: '/customers', label: 'Customer Loyalty', icon: Users },
+        { path: '/dead-stock', label: 'Dead Stock', icon: AlertTriangle },
+        { path: '/gst', label: 'GST Register', icon: FileText },
     ];
 
     return (
@@ -37,8 +44,8 @@ export default function Sidebar() {
                             key={item.path}
                             to={item.path}
                             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
-                                    ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                                    : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                                ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
                                 }`}
                         >
                             <Icon size={20} />
