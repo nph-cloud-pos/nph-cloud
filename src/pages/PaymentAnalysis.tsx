@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { Calendar, CreditCard, Wallet, FileText } from 'lucide-react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface PaymentData {
     mode: string;
@@ -95,12 +95,12 @@ export default function PaymentAnalysis() {
                     {data.length > 0 ? (
                         <ResponsiveContainer width="100%" height={300}>
                             <PieChart>
-                                <Pie data={data} dataKey="amount" nameKey="mode" cx="50%" cy="50%" outerRadius={100} label={(entry) => `${entry.mode} (${entry.percentage.toFixed(1)}%)`}>
-                                    {data.map((entry, index) => (
+                                <Pie data={data} dataKey="amount" nameKey="mode" cx="50%" cy="50%" outerRadius={100} label={({ mode, percent }) => `${mode} (${(Number(percent) * 100).toFixed(1)}%)`}>
+                                    {data.map((_, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                     ))}
                                 </Pie>
-                                <Tooltip formatter={(value: number) => `₹${value.toLocaleString('en-IN')}`} />
+                                <Tooltip formatter={(value: any) => `₹${Number(value).toLocaleString('en-IN')}`} />
                             </PieChart>
                         </ResponsiveContainer>
                     ) : (
