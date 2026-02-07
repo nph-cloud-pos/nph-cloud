@@ -235,11 +235,19 @@ function App() {
 
     return (
         <div className="min-h-screen bg-slate-950 text-white p-4 md:p-8 font-sans">
-            <header className="mb-6 md:mb-10">
-                <h1 className="text-2xl md:text-4xl font-extrabold bg-gradient-to-r from-blue-400 via-purple-500 to-indigo-500 bg-clip-text text-transparent pb-1">
-                    Posjet Live Monitor
-                </h1>
-                <p className="text-sm md:text-base text-slate-400 font-medium">Comprehensive Business Analytics</p>
+            <header className="mb-8 flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
+                        <ShoppingBag className="text-blue-500" /> Posjet Analytics
+                    </h1>
+                    <p className="text-sm text-slate-500 mt-1">Real-time Business Monitor</p>
+                </div>
+                <div className="text-right hidden sm:block">
+                    <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold">Current Time</p>
+                    <p className="text-xl font-bold text-slate-300 font-mono">
+                        {new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                    </p>
+                </div>
             </header>
 
             {/* Metrics Grid */}
@@ -320,7 +328,11 @@ function App() {
                                     <p className="font-semibold text-slate-200 truncate">{bill.customer_name || 'Walk-in Customer'}</p>
                                     <div className="flex flex-wrap gap-2 md:gap-4 text-xs text-slate-500 mt-1">
                                         <span className="flex items-center gap-1">
-                                            <Clock size={12} /> {new Date(bill.bill_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            <Clock size={12} /> {new Date(bill.bill_date).toLocaleString('en-IN', {
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                                hour12: true
+                                            })}
                                         </span>
                                         {bill.items_count ? <span>{bill.items_count} items</span> : null}
                                         {bill.payment_mode ? <span className="uppercase">{bill.payment_mode}</span> : null}
