@@ -79,48 +79,48 @@ export default function DailySales() {
     }), { bills: 0, gross: 0, discount: 0, net: 0, items: 0 });
 
     return (
-        <div className="min-h-screen bg-slate-950 text-white p-8">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold mb-2">Daily Sales Summary</h1>
-                <p className="text-slate-400">Track revenue and performance by day</p>
+        <div className="min-h-screen bg-slate-950 text-white p-4 md:p-8">
+            <div className="mb-6 md:mb-8">
+                <h1 className="text-2xl md:text-3xl font-bold mb-2">Daily Sales Summary</h1>
+                <p className="text-sm md:text-base text-slate-400">Track revenue and performance by day</p>
             </div>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div className="bg-slate-900/60 p-6 rounded-2xl border border-slate-800">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
+                <div className="bg-slate-900/60 p-4 md:p-6 rounded-2xl border border-slate-800">
                     <div className="flex items-center gap-3 mb-2">
                         <ShoppingBag className="text-blue-400" size={24} />
                         <p className="text-xs text-slate-500 uppercase">Total Bills</p>
                     </div>
-                    <p className="text-3xl font-bold">{totals.bills.toLocaleString('en-IN')}</p>
+                    <p className="text-2xl md:text-3xl font-bold">{totals.bills.toLocaleString('en-IN')}</p>
                 </div>
-                <div className="bg-slate-900/60 p-6 rounded-2xl border border-slate-800">
+                <div className="bg-slate-900/60 p-4 md:p-6 rounded-2xl border border-slate-800">
                     <div className="flex items-center gap-3 mb-2">
                         <DollarSign className="text-emerald-400" size={24} />
                         <p className="text-xs text-slate-500 uppercase">Net Sales</p>
                     </div>
-                    <p className="text-3xl font-bold text-emerald-400">₹{totals.net.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
+                    <p className="text-2xl md:text-3xl font-bold text-emerald-400">₹{totals.net.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
                 </div>
-                <div className="bg-slate-900/60 p-6 rounded-2xl border border-slate-800">
+                <div className="bg-slate-900/60 p-4 md:p-6 rounded-2xl border border-slate-800">
                     <div className="flex items-center gap-3 mb-2">
                         <TrendingUp className="text-orange-400" size={24} />
                         <p className="text-xs text-slate-500 uppercase">Discounts</p>
                     </div>
-                    <p className="text-3xl font-bold text-orange-400">₹{totals.discount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
+                    <p className="text-2xl md:text-3xl font-bold text-orange-400">₹{totals.discount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</p>
                 </div>
-                <div className="bg-slate-900/60 p-6 rounded-2xl border border-slate-800">
+                <div className="bg-slate-900/60 p-4 md:p-6 rounded-2xl border border-slate-800">
                     <div className="flex items-center gap-3 mb-2">
                         <ShoppingBag className="text-purple-400" size={24} />
                         <p className="text-xs text-slate-500 uppercase">Items Sold</p>
                     </div>
-                    <p className="text-3xl font-bold text-purple-400">{totals.items.toLocaleString('en-IN')}</p>
+                    <p className="text-2xl md:text-3xl font-bold text-purple-400">{totals.items.toLocaleString('en-IN')}</p>
                 </div>
             </div>
 
             {/* Filters */}
-            <div className="bg-slate-900/60 p-6 rounded-2xl border border-slate-800 mb-8">
-                <div className="flex flex-wrap gap-4 items-end">
-                    <div className="flex-1 min-w-[200px]">
+            <div className="bg-slate-900/60 p-4 md:p-6 rounded-2xl border border-slate-800 mb-6 md:mb-8">
+                <div className="flex flex-col md:flex-row flex-wrap gap-4 items-end">
+                    <div className="w-full md:flex-1 min-w-[200px]">
                         <label className="block text-sm text-slate-400 mb-2 flex items-center gap-2">
                             <Calendar size={16} /> From Date
                         </label>
@@ -131,7 +131,7 @@ export default function DailySales() {
                             className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:border-blue-500 focus:outline-none"
                         />
                     </div>
-                    <div className="flex-1 min-w-[200px]">
+                    <div className="w-full md:flex-1 min-w-[200px]">
                         <label className="block text-sm text-slate-400 mb-2 flex items-center gap-2">
                             <Calendar size={16} /> To Date
                         </label>
@@ -142,37 +142,39 @@ export default function DailySales() {
                             className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:border-blue-500 focus:outline-none"
                         />
                     </div>
-                    <button
-                        onClick={fetchData}
-                        disabled={loading}
-                        className="bg-blue-500 hover:bg-blue-600 disabled:bg-slate-700 px-6 py-2 rounded-lg font-semibold transition"
-                    >
-                        {loading ? 'Loading...' : 'Generate Report'}
-                    </button>
-                    <button
-                        onClick={() => {
-                            const csv = [
-                                ['Date', 'Bills', 'Gross Sales', 'Discounts', 'Net Sales', 'Items Sold', 'Avg Bill'],
-                                ...data.map(d => [d.date, d.bills_count, d.gross_sales, d.discount_amount, d.net_sales, d.items_sold, d.avg_bill_value.toFixed(2)])
-                            ].map(row => row.join(',')).join('\n');
-                            const blob = new Blob([csv], { type: 'text/csv' });
-                            const url = URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = `daily-sales-${fromDate}-to-${toDate}.csv`;
-                            a.click();
-                        }}
-                        className="bg-slate-700 hover:bg-slate-600 px-6 py-2 rounded-lg font-semibold transition flex items-center gap-2"
-                    >
-                        <Download size={18} /> Export
-                    </button>
+                    <div className="flex gap-4 w-full md:w-auto">
+                        <button
+                            onClick={fetchData}
+                            disabled={loading}
+                            className="flex-1 md:flex-none bg-blue-500 hover:bg-blue-600 disabled:bg-slate-700 px-6 py-2 rounded-lg font-semibold transition"
+                        >
+                            {loading ? 'Loading...' : 'Generate Report'}
+                        </button>
+                        <button
+                            onClick={() => {
+                                const csv = [
+                                    ['Date', 'Bills', 'Gross Sales', 'Discounts', 'Net Sales', 'Items Sold', 'Avg Bill'],
+                                    ...data.map(d => [d.date, d.bills_count, d.gross_sales, d.discount_amount, d.net_sales, d.items_sold, d.avg_bill_value.toFixed(2)])
+                                ].map(row => row.join(',')).join('\n');
+                                const blob = new Blob([csv], { type: 'text/csv' });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `daily-sales-${fromDate}-to-${toDate}.csv`;
+                                a.click();
+                            }}
+                            className="flex-1 md:flex-none bg-slate-700 hover:bg-slate-600 px-6 py-2 rounded-lg font-semibold transition flex items-center justify-center gap-2"
+                        >
+                            <Download size={18} /> Export
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {/* Data Table */}
             <div className="bg-slate-900/60 rounded-2xl border border-slate-800 overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full">
+                    <table className="w-full min-w-[800px]">
                         <thead className="bg-slate-800/50">
                             <tr>
                                 <th className="text-left p-4 text-sm font-semibold">Date</th>

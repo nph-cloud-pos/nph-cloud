@@ -88,32 +88,32 @@ export default function ItemProfit() {
     const avgMargin = totalSales > 0 ? (totalProfit / totalSales * 100) : 0;
 
     return (
-        <div className="min-h-screen bg-slate-950 text-white p-8">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold mb-2">Item Wise Profit Report</h1>
-                <p className="text-slate-400">Analyze product profitability over time</p>
+        <div className="min-h-screen bg-slate-950 text-white p-4 md:p-8">
+            <div className="mb-6 md:mb-8">
+                <h1 className="text-2xl md:text-3xl font-bold mb-2">Item Wise Profit Report</h1>
+                <p className="text-sm md:text-base text-slate-400">Analyze product profitability over time</p>
             </div>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-slate-900/60 backdrop-blur-xl p-6 rounded-2xl border border-slate-800">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-8">
+                <div className="bg-slate-900/60 backdrop-blur-xl p-4 md:p-6 rounded-2xl border border-slate-800">
                     <p className="text-xs text-slate-500 uppercase mb-2">Total Sales</p>
-                    <p className="text-3xl font-bold text-blue-400">₹{totalSales.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                    <p className="text-2xl md:text-3xl font-bold text-blue-400">₹{totalSales.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 </div>
-                <div className="bg-slate-900/60 backdrop-blur-xl p-6 rounded-2xl border border-slate-800">
+                <div className="bg-slate-900/60 backdrop-blur-xl p-4 md:p-6 rounded-2xl border border-slate-800">
                     <p className="text-xs text-slate-500 uppercase mb-2">Total Profit</p>
-                    <p className="text-3xl font-bold text-emerald-400">₹{totalProfit.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                    <p className="text-2xl md:text-3xl font-bold text-emerald-400">₹{totalProfit.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 </div>
-                <div className="bg-slate-900/60 backdrop-blur-xl p-6 rounded-2xl border border-slate-800">
+                <div className="bg-slate-900/60 backdrop-blur-xl p-4 md:p-6 rounded-2xl border border-slate-800">
                     <p className="text-xs text-slate-500 uppercase mb-2">Avg Margin</p>
-                    <p className="text-3xl font-bold text-purple-400">{avgMargin.toFixed(1)}%</p>
+                    <p className="text-2xl md:text-3xl font-bold text-purple-400">{avgMargin.toFixed(1)}%</p>
                 </div>
             </div>
 
             {/* Date Filter */}
-            <div className="bg-slate-900/60 backdrop-blur-xl p-6 rounded-2xl border border-slate-800 mb-8">
-                <div className="flex flex-wrap gap-4 items-end">
-                    <div className="flex-1 min-w-[200px]">
+            <div className="bg-slate-900/60 backdrop-blur-xl p-4 md:p-6 rounded-2xl border border-slate-800 mb-6 md:mb-8">
+                <div className="flex flex-col md:flex-row flex-wrap gap-4 items-end">
+                    <div className="w-full md:flex-1 min-w-[200px]">
                         <label className="block text-sm text-slate-400 mb-2 flex items-center gap-2">
                             <Calendar size={16} /> From Date
                         </label>
@@ -124,7 +124,7 @@ export default function ItemProfit() {
                             className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:border-blue-500 focus:outline-none"
                         />
                     </div>
-                    <div className="flex-1 min-w-[200px]">
+                    <div className="w-full md:flex-1 min-w-[200px]">
                         <label className="block text-sm text-slate-400 mb-2 flex items-center gap-2">
                             <Calendar size={16} /> To Date
                         </label>
@@ -135,47 +135,49 @@ export default function ItemProfit() {
                             className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:border-blue-500 focus:outline-none"
                         />
                     </div>
-                    <button
-                        onClick={fetchData}
-                        disabled={loading}
-                        className="bg-blue-500 hover:bg-blue-600 disabled:bg-slate-700 px-6 py-2 rounded-lg font-semibold transition flex items-center gap-2"
-                    >
-                        {loading ? <RefreshCw size={18} className="animate-spin" /> : <TrendingUp size={18} />}
-                        {loading ? 'Loading...' : 'Generate Report'}
-                    </button>
-                    <button
-                        onClick={() => {
-                            const csv = [
-                                ['Product Name', 'Qty Sold', 'Landing Cost', 'Sales Amount', 'Profit', 'Profit %'],
-                                ...data.map(item => [
-                                    item.product_name,
-                                    item.total_quantity,
-                                    item.total_landing_cost.toFixed(2),
-                                    item.total_sales.toFixed(2),
-                                    item.total_profit.toFixed(2),
-                                    item.profit_percent.toFixed(2)
-                                ])
-                            ].map(row => row.join(',')).join('\n');
+                    <div className="flex gap-4 w-full md:w-auto">
+                        <button
+                            onClick={fetchData}
+                            disabled={loading}
+                            className="flex-1 md:flex-none bg-blue-500 hover:bg-blue-600 disabled:bg-slate-700 px-6 py-2 rounded-lg font-semibold transition flex items-center justify-center gap-2"
+                        >
+                            {loading ? <RefreshCw size={18} className="animate-spin" /> : <TrendingUp size={18} />}
+                            {loading ? 'Loading...' : 'Generate Report'}
+                        </button>
+                        <button
+                            onClick={() => {
+                                const csv = [
+                                    ['Product Name', 'Qty Sold', 'Landing Cost', 'Sales Amount', 'Profit', 'Profit %'],
+                                    ...data.map(item => [
+                                        item.product_name,
+                                        item.total_quantity,
+                                        item.total_landing_cost.toFixed(2),
+                                        item.total_sales.toFixed(2),
+                                        item.total_profit.toFixed(2),
+                                        item.profit_percent.toFixed(2)
+                                    ])
+                                ].map(row => row.join(',')).join('\n');
 
-                            const blob = new Blob([csv], { type: 'text/csv' });
-                            const url = URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = `item-profit-${fromDate}-to-${toDate}.csv`;
-                            a.click();
-                        }}
-                        className="bg-slate-700 hover:bg-slate-600 px-6 py-2 rounded-lg font-semibold transition flex items-center gap-2"
-                    >
-                        <Download size={18} />
-                        Export CSV
-                    </button>
+                                const blob = new Blob([csv], { type: 'text/csv' });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `item-profit-${fromDate}-to-${toDate}.csv`;
+                                a.click();
+                            }}
+                            className="flex-1 md:flex-none bg-slate-700 hover:bg-slate-600 px-6 py-2 rounded-lg font-semibold transition flex items-center justify-center gap-2"
+                        >
+                            <Download size={18} />
+                            Export CSV
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {/* Data Table */}
             <div className="bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-800 overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full">
+                    <table className="w-full min-w-[900px]">
                         <thead className="bg-slate-800/50">
                             <tr>
                                 <th className="text-left p-4 text-sm font-semibold text-slate-300">Product Name</th>
@@ -196,9 +198,9 @@ export default function ItemProfit() {
                                     <td className="p-4 text-right text-emerald-400 font-semibold">₹{item.total_profit.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                                     <td className="p-4 text-right">
                                         <span className={`px-3 py-1 rounded-full text-sm font-semibold ${item.profit_percent > 30 ? 'bg-emerald-900/30 text-emerald-400' :
-                                                item.profit_percent > 15 ? 'bg-blue-900/30 text-blue-400' :
-                                                    item.profit_percent > 0 ? 'bg-yellow-900/30 text-yellow-400' :
-                                                        'bg-red-900/30 text-red-400'
+                                            item.profit_percent > 15 ? 'bg-blue-900/30 text-blue-400' :
+                                                item.profit_percent > 0 ? 'bg-yellow-900/30 text-yellow-400' :
+                                                    'bg-red-900/30 text-red-400'
                                             }`}>
                                             {item.profit_percent.toFixed(1)}%
                                         </span>
