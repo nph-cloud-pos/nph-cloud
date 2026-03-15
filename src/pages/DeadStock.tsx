@@ -60,7 +60,7 @@ export default function DeadStock() {
                         />
                         <div className="flex justify-between text-xs text-slate-500 mb-6">
                             <span>30d</span>
-                            <span className="text-blue-400 font-bold bg-blue-400/10 px-2 py-1 rounded">Miminum {threshold} Days</span>
+                            <span className="text-blue-400 font-bold bg-blue-400/10 px-2 py-1 rounded">Minimum {threshold} Days</span>
                             <span>365d</span>
                         </div>
 
@@ -81,7 +81,7 @@ export default function DeadStock() {
                     </div>
 
                     <div className="bg-blue-500/10 border border-blue-500/20 p-6 rounded-2xl">
-                        <h4 className="text-sm font-bold text-blue-400 mb-2">Recoomendation</h4>
+                        <h4 className="text-sm font-bold text-blue-400 mb-2">Recommendation</h4>
                         <p className="text-xs text-slate-400 leading-relaxed">
                             Consider running clearance sales or bundle offers for these items to release blocked capital.
                         </p>

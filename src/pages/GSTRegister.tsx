@@ -79,7 +79,34 @@ export default function GSTRegister() {
                         onChange={(e) => setMonth(e.target.value)}
                         className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 focus:border-blue-500"
                     />
-                    <button className="bg-emerald-600 hover:bg-emerald-500 px-6 py-2 rounded-xl font-bold flex items-center gap-2 transition">
+                    <button
+                        onClick={() => {
+                            const csv = [
+                                ['Bill No', 'Date', 'Customer', 'Taxable Value', 'CGST', 'SGST', 'IGST', 'Total Tax', 'Grand Total'],
+                                ...data.map(b => [
+                                    b.bill_no,
+                                    new Date(b.bill_date).toLocaleDateString('en-IN'),
+                                    b.customer_name,
+                                    (b.amount - b.tax_amount).toFixed(2),
+                                    b.cgst.toFixed(2),
+                                    b.sgst.toFixed(2),
+                                    b.igst.toFixed(2),
+                                    b.tax_amount.toFixed(2),
+                                    b.amount.toFixed(2)
+                                ]),
+                                ['', '', 'TOTAL', totals.taxable.toFixed(2), totals.cgst.toFixed(2), totals.sgst.toFixed(2), totals.igst.toFixed(2), totals.totalTax.toFixed(2), totals.grand.toFixed(2)]
+                            ].map(row => row.join(',')).join('\n');
+                            const blob = new Blob([csv], { type: 'text/csv' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `GSTR1-${month}.csv`;
+                            a.click();
+                            URL.revokeObjectURL(url);
+                        }}
+                        disabled={data.length === 0}
+                        className="bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:cursor-not-allowed px-6 py-2 rounded-xl font-bold flex items-center gap-2 transition"
+                    >
                         <Download size={18} /> Export GSTR-1
                     </button>
                 </div>

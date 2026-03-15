@@ -20,6 +20,21 @@ export default function CategoryProfit() {
     const fetchData = async () => {
         setLoading(true);
         try {
+            // Build product_name → category_name map from stock_summary
+            const { data: stockData } = await supabase
+                .from('stock_summary')
+                .select('product_name, category_name');
+
+            const categoryMap = new Map<string, string>();
+            if (stockData) {
+                stockData.forEach((s: { product_name: string; category_name: string }) => {
+                    if (s.product_name && s.category_name) {
+                        categoryMap.set(s.product_name.trim().toLowerCase(), s.category_name);
+                    }
+                });
+            }
+
+            // Fetch sale details for date range
             const { data: salesDetails, error } = await supabase
                 .from('sale_details')
                 .select('product_name, quantity, net_sale_amount, profit_amount, bill_date')
@@ -29,30 +44,30 @@ export default function CategoryProfit() {
             if (error) throw error;
 
             if (salesDetails && salesDetails.length > 0) {
-                // Since we don't have category in sale_details yet, we'll join it mentally from ItemMaster
-                // For now, grouping by "Unknown Category" or partial names if possible
-                // Ideally we'd sync category_name in sale_details
+                const catMap = new Map<string, { sales: number; profit: number; items: number }>();
 
-                const catMap = new Map<string, any>();
-                salesDetails.forEach(s => {
-                    // MOCK LOGIC for demo category split - in real app, add category to sale_details table
-                    const cat = 'General';
+                salesDetails.forEach((s: { product_name: string; quantity: number; net_sale_amount: number; profit_amount: number }) => {
+                    const cat = categoryMap.get((s.product_name || '').trim().toLowerCase()) || 'Uncategorized';
                     if (!catMap.has(cat)) catMap.set(cat, { sales: 0, profit: 0, items: 0 });
-                    const entry = catMap.get(cat);
+                    const entry = catMap.get(cat)!;
                     entry.sales += Number(s.net_sale_amount) || 0;
                     entry.profit += Number(s.profit_amount) || 0;
                     entry.items += Number(s.quantity) || 0;
                 });
 
-                const result = Array.from(catMap.entries()).map(([cat, vals]) => ({
-                    category: cat,
-                    sales: vals.sales,
-                    profit: vals.profit,
-                    items_sold: vals.items,
-                    margin: vals.sales > 0 ? (vals.profit / vals.sales * 100) : 0
-                }));
+                const result = Array.from(catMap.entries())
+                    .map(([cat, vals]) => ({
+                        category: cat,
+                        sales: vals.sales,
+                        profit: vals.profit,
+                        items_sold: vals.items,
+                        margin: vals.sales > 0 ? (vals.profit / vals.sales * 100) : 0
+                    }))
+                    .sort((a, b) => b.sales - a.sales);
 
                 setData(result);
+            } else {
+                setData([]);
             }
         } catch (error) {
             console.error('Error:', error);
@@ -93,26 +108,33 @@ export default function CategoryProfit() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Chart */}
-                <div className="bg-slate-900/60 p-8 rounded-3xl border border-slate-800 aspect-video">
+                <div className="bg-slate-900/60 p-8 rounded-3xl border border-slate-800">
                     <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
-                        <BarChart3 className="text-blue-500" /> Sales vs Profit
+                        <BarChart3 className="text-blue-500" /> Sales vs Profit by Category
                     </h3>
-                    <ResponsiveContainer width="100%" height="80%">
-                        <BarChart data={data}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                            <XAxis dataKey="category" stroke="#94a3b8" />
-                            <YAxis stroke="#94a3b8" />
-                            <Tooltip
-                                contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px' }}
-                                itemStyle={{ color: '#fff' }}
-                            />
-                            <Bar dataKey="sales" name="Sales" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                            <Bar dataKey="profit" name="Profit" fill="#10b981" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
+                    {data.length > 0 ? (
+                        <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={data.slice(0, 10)}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                                <XAxis dataKey="category" stroke="#94a3b8" tick={{ fontSize: 11 }} />
+                                <YAxis stroke="#94a3b8" />
+                                <Tooltip
+                                    contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px' }}
+                                    itemStyle={{ color: '#fff' }}
+                                    formatter={(value: number | undefined) => value != null ? `₹${value.toLocaleString('en-IN', { maximumFractionDigits: 0 })}` : '₹0'}
+                                />
+                                <Bar dataKey="sales" name="Sales" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="profit" name="Profit" fill="#10b981" radius={[4, 4, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className="h-[300px] flex items-center justify-center text-slate-500">
+                            {loading ? <RefreshCw className="animate-spin" size={32} /> : 'No data for selected period'}
+                        </div>
+                    )}
                 </div>
 
-                {/* List */}
+                {/* Table */}
                 <div className="bg-slate-900/60 rounded-3xl border border-slate-800 overflow-hidden">
                     <table className="w-full">
                         <thead className="bg-slate-800/50">
@@ -127,13 +149,13 @@ export default function CategoryProfit() {
                             {data.map((row, i) => (
                                 <tr key={i} className="border-t border-slate-800 hover:bg-slate-800/30">
                                     <td className="p-5 font-bold">{row.category}</td>
-                                    <td className="p-5 text-right">₹{row.sales.toLocaleString('en-IN')}</td>
-                                    <td className="p-5 text-right text-emerald-400 font-semibold">₹{row.profit.toLocaleString('en-IN')}</td>
+                                    <td className="p-5 text-right">₹{row.sales.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
+                                    <td className="p-5 text-right text-emerald-400 font-semibold">₹{row.profit.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
                                     <td className="p-5 text-right">
                                         <div className="flex flex-col items-end">
                                             <span className="text-lg font-extrabold text-blue-400">{row.margin.toFixed(1)}%</span>
                                             <div className="w-full max-w-[80px] bg-slate-800 h-1 rounded-full mt-1">
-                                                <div className="bg-blue-500 h-full rounded-full" style={{ width: `${Math.min(row.margin, 100)}%` }}></div>
+                                                <div className="bg-blue-500 h-full rounded-full" style={{ width: `${Math.min(Math.max(row.margin, 0), 100)}%` }}></div>
                                             </div>
                                         </div>
                                     </td>
@@ -144,7 +166,7 @@ export default function CategoryProfit() {
 
                     {data.length === 0 && !loading && (
                         <div className="p-20 text-center text-slate-500">
-                            <p>Sync category mapping to see visual analytics.</p>
+                            <p>No sales data found for the selected period.</p>
                         </div>
                     )}
                 </div>

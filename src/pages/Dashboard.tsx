@@ -28,6 +28,14 @@ function App() {
     const [todayProfit, setTodayProfit] = useState(0);
     const [totalItems, setTotalItems] = useState(0);
 
+    // Yesterday metrics for trend
+    const [yesterdayGross, setYesterdayGross] = useState(0);
+    const [yesterdayTotal, setYesterdayTotal] = useState(0);
+
+    // Stock overview
+    const [activeProducts, setActiveProducts] = useState<number | null>(null);
+    const [lowStockCount, setLowStockCount] = useState<number | null>(null);
+
     useEffect(() => {
         const fetchBills = async () => {
             const { data } = await supabase
@@ -42,7 +50,40 @@ function App() {
             }
         };
 
+        const fetchYesterdayMetrics = async () => {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yDate = yesterday.toISOString().split('T')[0];
+
+            const { data } = await supabase
+                .from('sales')
+                .select('amount, gross_amount')
+                .gte('bill_date', yDate + ' 00:00:00')
+                .lte('bill_date', yDate + ' 23:59:59');
+
+            if (data) {
+                const yGross = data.reduce((s, b) => s + (Number(b.gross_amount) || Number(b.amount) || 0), 0);
+                const yNet = data.reduce((s, b) => s + (Number(b.amount) || 0), 0);
+                setYesterdayGross(yGross);
+                setYesterdayTotal(yNet);
+            }
+        };
+
+        const fetchStockOverview = async () => {
+            const { data, count } = await supabase
+                .from('stock_summary')
+                .select('current_stock, reorder_min', { count: 'exact' });
+
+            if (data) {
+                setActiveProducts(count ?? data.length);
+                const low = data.filter(i => Number(i.current_stock) < Number(i.reorder_min) && Number(i.reorder_min) > 0).length;
+                setLowStockCount(low);
+            }
+        };
+
         fetchBills();
+        fetchYesterdayMetrics();
+        fetchStockOverview();
 
         const channel = supabase
             .channel('realtime sales')
@@ -51,11 +92,9 @@ function App() {
 
                 setBills((prev) => {
                     const updated = [newBill, ...prev];
-                    // Ensure strict chronological order (newest first)
                     return updated.sort((a, b) => new Date(b.bill_date).getTime() - new Date(a.bill_date).getTime());
                 });
 
-                // Only update "Today" metrics if the bill is actually from today
                 const today = new Date().toISOString().split('T')[0];
                 if (newBill.bill_date.startsWith(today)) {
                     setTodayTotal((prev) => prev + (newBill.amount || 0));
@@ -89,6 +128,11 @@ function App() {
         setTodayProfit(profit);
     };
 
+    const calcTrend = (today: number, yesterday: number) => {
+        if (yesterday === 0) return null;
+        return Math.round(((today - yesterday) / yesterday) * 100);
+    };
+
     const MetricCard = ({ title, value, icon: Icon, color, onClick, trend }: any) => (
         <div
             onClick={onClick}
@@ -98,9 +142,9 @@ function App() {
                 <div className={`p-3 bg-${color}-500/10 rounded-xl`}>
                     <Icon className={`text-${color}-400`} size={24} />
                 </div>
-                {trend && (
-                    <div className={`text-xs font-semibold ${trend > 0 ? 'text-green-400' : 'text-red-400'} flex items-center gap-1`}>
-                        {trend > 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                {trend != null && (
+                    <div className={`text-xs font-semibold ${trend >= 0 ? 'text-green-400' : 'text-red-400'} flex items-center gap-1`}>
+                        {trend >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
                         {Math.abs(trend)}%
                     </div>
                 )}
@@ -134,15 +178,11 @@ function App() {
 
         return (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-                {/* Backdrop */}
                 <div
                     className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                     onClick={onClose}
                 />
-
-                {/* Modal Content */}
                 <div className="relative bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg md:max-w-2xl max-h-[90vh] flex flex-col shadow-2xl animate-in fade-in zoom-in duration-200">
-                    {/* Header */}
                     <div className="p-4 md:p-6 border-b border-slate-800 flex items-center justify-between shrink-0">
                         <div>
                             <h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -161,7 +201,6 @@ function App() {
                         </button>
                     </div>
 
-                    {/* Scrollable Body */}
                     <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
                         {loadingBillItems ? (
                             <div className="flex items-center justify-center py-12">
@@ -169,7 +208,6 @@ function App() {
                             </div>
                         ) : (
                             <div className="space-y-4">
-                                {/* Items Table */}
                                 <div className="bg-slate-950/50 rounded-xl border border-slate-800 overflow-hidden">
                                     <table className="w-full text-sm text-left">
                                         <thead className="bg-slate-800/50 text-slate-400 font-medium">
@@ -208,7 +246,6 @@ function App() {
                                     </table>
                                 </div>
 
-                                {/* Bill Summary */}
                                 <div className="flex justify-end pt-2">
                                     <div className="w-full sm:w-1/2 space-y-2">
                                         <div className="flex justify-between text-sm text-slate-400">
@@ -232,6 +269,9 @@ function App() {
             </div>
         );
     };
+
+    const salesTrend = calcTrend(todayGross, yesterdayGross);
+    const revenueTrend = calcTrend(todayTotal, yesterdayTotal);
 
     return (
         <div className="min-h-screen bg-slate-950 text-white p-4 md:p-8 font-sans">
@@ -257,7 +297,7 @@ function App() {
                     value={`₹${todayGross.toLocaleString('en-IN')}`}
                     icon={BarChart3}
                     color="blue"
-                    trend={12}
+                    trend={salesTrend}
                     onClick={() => setSelectedMetric('sales')}
                 />
                 <MetricCard
@@ -272,7 +312,7 @@ function App() {
                     value={`₹${todayTotal.toLocaleString('en-IN')}`}
                     icon={BadgeIndianRupee}
                     color="emerald"
-                    trend={8}
+                    trend={revenueTrend}
                     onClick={() => setSelectedMetric('revenue')}
                 />
                 <MetricCard
@@ -296,13 +336,15 @@ function App() {
                     </div>
                     <div className="text-center p-4 md:p-6 bg-slate-900/50 rounded-xl border border-slate-700">
                         <p className="text-xs md:text-sm text-slate-400 mb-2">Active Products</p>
-                        <p className="text-2xl md:text-4xl font-bold text-emerald-400">--</p>
-                        <p className="text-xs text-slate-500 mt-1">Sync in progress</p>
+                        <p className="text-2xl md:text-4xl font-bold text-emerald-400">
+                            {activeProducts !== null ? activeProducts.toLocaleString('en-IN') : '--'}
+                        </p>
                     </div>
                     <div className="text-center p-4 md:p-6 bg-slate-900/50 rounded-xl border border-slate-700">
                         <p className="text-xs md:text-sm text-slate-400 mb-2">Low Stock Alerts</p>
-                        <p className="text-2xl md:text-4xl font-bold text-orange-400">--</p>
-                        <p className="text-xs text-slate-500 mt-1">Coming soon</p>
+                        <p className={`text-2xl md:text-4xl font-bold ${lowStockCount && lowStockCount > 0 ? 'text-orange-400' : 'text-emerald-400'}`}>
+                            {lowStockCount !== null ? lowStockCount : '--'}
+                        </p>
                     </div>
                 </div>
             </div>
